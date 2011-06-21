@@ -288,5 +288,23 @@ nearby Clojure form and recheck the last fact checked
   ;;                    'midje-post-compilation-action)
   (hs-minor-mode 1))
 
+;;;###autoload
+(progn
+  (defun midje-mode-maybe-enable ()
+    "Enable midje-mode if the current buffer contains a \"midje.\" string."
+    (let ((regexp "midje\\."))
+      (save-excursion
+        (when (or (re-search-backward regexp nil t)
+                  (re-search-forward regexp nil t))
+          (midje-mode t)))))
+  (add-hook 'clojure-mode-hook 'midje-mode-maybe-enable))
+
+(eval-after-load 'clojure-mode
+  '(define-clojure-indent
+     (fact 'defun)
+     (facts 'defun)
+     (against-background 'defun)
+     (provided 0)))
+
 (provide 'midje-mode)
 ;;; midje-mode.el ends here
