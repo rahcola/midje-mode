@@ -1,21 +1,12 @@
 ;;; midje-mode.el --- Minor mode for Midje tests
 ;;
 ;; This is a minor mode designed to be used with clojure-mode.el and slime.el
-
-;; What's in my .emacs file:
-;; (eval-after-load 'clojure-mode
-;;   '(define-clojure-indent
-;;      (fact 'defun)
-;;      (facts 'defun)
-;;      (against-background 'defun)
-;;      (provided 0)))
-
-;; (require 'clojure-mode)
-;; (add-to-list 'auto-mode-alist '("\\.clj$" . clojure-mode))
+;;
+;; Usage:
 ;; (require 'midje-mode)
-;; (add-hook 'clojure-mode-hook 'midje-mode)
 ;; (require 'clojure-jump-to-file)
 
+;;; Code:
 
 (require 'clojure-mode)
 (require 'slime)
@@ -53,31 +44,31 @@
     (modify-syntax-entry ?? "w" midje-syntax-table)
     (modify-syntax-entry ?! "w" midje-syntax-table))
 
-  (save-excursion 
+  (save-excursion
     (with-syntax-table midje-syntax-table
       (let ((beg (if (midje-at-start-of-identifier?)
-		     (point)
-		   (progn (backward-word) (point)))))
-	(forward-word)
-	(buffer-substring-no-properties beg (point))))))
+                     (point)
+                   (progn (backward-word) (point)))))
+        (forward-word)
+        (buffer-substring-no-properties beg (point))))))
 
 (defun midje-to-unfinished ()
   (goto-char (point-min))
   (search-forward "(unfinished"))
 
-(defun midje-within-unfinished? () 
+(defun midje-within-unfinished? ()
   (let ((target (point))
-	 unfinished-beg
-	 unfinished-end)
+        unfinished-beg
+        unfinished-end)
     (save-excursion
       (save-restriction
-	(midje-to-unfinished)
-	(beginning-of-defun)
-	(setq unfinished-beg (point))
-	(end-of-defun)
-	(setq unfinished-end (point))
-	(and (>= target unfinished-beg)
-	     (<= target unfinished-end))))))
+        (midje-to-unfinished)
+        (beginning-of-defun)
+        (setq unfinished-beg (point))
+        (end-of-defun)
+        (setq unfinished-end (point))
+        (and (>= target unfinished-beg)
+             (<= target unfinished-end))))))
 
 (defun midje-tidy-unfinished ()
   (midje-to-unfinished) (let ((fill-prefix "")) (fill-paragraph nil))
@@ -100,11 +91,11 @@
     (save-restriction
       (widen)
       (let ((identifier (midje-identifier)))
-	(with-syntax-table midje-syntax-table
-	  (unless (midje-at-start-of-identifier?) (backward-word))
-	  (kill-word nil)
-	  (midje-tidy-unfinished)
-	  identifier)))))
+        (with-syntax-table midje-syntax-table
+          (unless (midje-at-start-of-identifier?) (backward-word))
+          (kill-word nil)
+          (midje-tidy-unfinished)
+          identifier)))))
 
 (defun midje-add-defn-after-unfinished (identifier)
   (widen)
@@ -123,33 +114,33 @@
 (defun midje-provide-result-info (result)
   (destructuring-bind (output value) result
     (if (string= output "")
-	(midje-display-reward)
+        (midje-display-reward)
       (midje-insert-failure-message output))))
 
 (defun midje-insert-failure-message (str &optional justify)
   (let ((start-point (point))
-	(end-point (progn (insert str) (point))))
+        (end-point (progn (insert str) (point))))
     (midje-add-midje-comments start-point end-point)
     (goto-char start-point)
-    (unless (string= ";" (char-to-string (char-after))) 
+    (unless (string= ";" (char-to-string (char-after)))
       (delete-char 1))))
 
 (defun midje-display-reward ()
   (save-excursion
     (save-restriction
       (let ((start (point)))
-	(insert (midje-random-praise))
-	(narrow-to-region start (point))
-	(goto-char (point-min))
-	(fill-paragraph nil)
-	(midje-add-midje-comments (point-min) (point-max))))))
+        (insert (midje-random-praise))
+        (narrow-to-region start (point))
+        (goto-char (point-min))
+        (fill-paragraph nil)
+        (midje-add-midje-comments (point-min) (point-max))))))
 
 (defun midje-add-midje-comments (start-point end-point)
   (let ((comment-start midje-comments)
-	(comment-empty-lines t))
+        (comment-empty-lines t))
     (comment-region start-point end-point)))
 
-(defun midje-on-fact? () 
+(defun midje-on-fact? ()
   (save-excursion
     (save-restriction
       (narrow-to-defun)
@@ -181,8 +172,8 @@ all such comments."
     (goto-char (point-min))
     (let ((kill-whole-line t))
       (while (search-forward midje-comments nil t)
-	(beginning-of-line)
-	(kill-line)))))
+        (beginning-of-line)
+        (kill-line)))))
 
 (defun midje-check-fact-near-point ()
   "Used when `point' is on or just after a Midje fact.
@@ -191,8 +182,8 @@ Check that fact and also save it for use of
   (interactive)
   (midje-clear-comments)
   (let ((string (save-excursion
-		 (mark-defun)
-		 (buffer-substring-no-properties (mark) (point)))))
+                  (mark-defun)
+                  (buffer-substring-no-properties (mark) (point)))))
     (setq last-checked-midje-fact string)
     (slime-eval-async `(swank:eval-and-grab-output ,string)
       'midje-insert-above-fact)))
@@ -206,15 +197,15 @@ the last fact checked (by `midje-check-fact-near-point')."
   (midje-clear-comments)
   (setq midje-running-fact t)
   (slime-compile-defun)
-  ; Callback is slime-compilation-finished, then midje-after-compilation-check-fact
-)
+                                        ; Callback is slime-compilation-finished, then midje-after-compilation-check-fact
+  )
 
 ;; This is a HACK. I want to add midje-after-compilation-check-fact to
-;; the slime-compilation-finished-hook, but I can't seem to override the 
-;; :options declaration in the original slime.el defcustom. 
+;; the slime-compilation-finished-hook, but I can't seem to override the
+;; :options declaration in the original slime.el defcustom.
 (unless (fboundp 'original-slime-compilation-finished)
   (setf (symbol-function 'original-slime-compilation-finished)
-	(symbol-function 'slime-compilation-finished)))
+        (symbol-function 'slime-compilation-finished)))
 
 (defun slime-compilation-finished (result)
   (original-slime-compilation-finished result)
@@ -224,7 +215,7 @@ the last fact checked (by `midje-check-fact-near-point')."
 (defun midje-after-compilation-check-fact ()
   (if midje-running-fact
       (slime-eval-async `(swank:eval-and-grab-output ,last-checked-midje-fact)
-	'midje-insert-below-code-under-test))
+        'midje-insert-below-code-under-test))
   (setq midje-running-fact nil))
 
 (defun midje-check-fact ()
@@ -233,7 +224,7 @@ the last fact checked (by `midje-check-fact-near-point')."
 nearby Clojure form and recheck the last fact checked
 (with `midje-recheck-last-fact-checked')."
   (interactive)
-  (if (midje-on-fact?) 
+  (if (midje-on-fact?)
       (midje-check-fact-near-point)
     (midje-recheck-last-fact-checked)))
 
@@ -253,7 +244,7 @@ nearby Clojure form and recheck the last fact checked
 
 (defun midje-unfinished ()
   (interactive)
-  (if (midje-within-unfinished?) 
+  (if (midje-within-unfinished?)
       (midje-add-defn-after-unfinished (midje-remove-identifier-from-unfinished-list))
     (midje-add-identifier-to-unfinished-list (midje-identifier))))
 
@@ -279,7 +270,7 @@ nearby Clojure form and recheck the last fact checked
 
 ;;;###autoload
 (define-minor-mode midje-mode
-"A minor mode for running Midje tests when in `slime-mode'.
+  "A minor mode for running Midje tests when in `slime-mode'.
 
 \\{midje-mode-map}"
   nil " Midje" midje-mode-map
