@@ -20,6 +20,7 @@
 (require 'clojure-mode)
 (require 'slime)
 (require 'newcomment)
+(require 'midje-mode-praise)
 
 (defvar midje-running-fact nil)   ;; KLUDGE!
 
@@ -37,8 +38,7 @@
 (defun midje-insert-below-code-under-test (result)
   (end-of-defun)
   (next-line)
-  (midje-provide-result-info result)
-)
+  (midje-provide-result-info result))
 
 ;; Util
 
@@ -289,4 +289,4 @@ nearby Clojure form and recheck the last fact checked
   (hs-minor-mode 1))
 
 (provide 'midje-mode)
-(require 'midje-mode-praise)
+;;; midje-mode.el ends here
