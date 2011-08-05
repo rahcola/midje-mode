@@ -156,6 +156,24 @@
       (funcall fun))))
 
 
+(add-hook 'midje-mode-hook 'midje-colorize)
+(defun midje-colorize ()
+  (flet ((f (keywords face)
+            (cons (concat "\\<\\("
+                          (mapconcat 'symbol-name keywords "\\|")
+                          "\\)\\>")
+                  face)))
+    (font-lock-add-keywords
+     nil
+     (list (f '(fact facts future-fact future-facts tabular provided)
+              'font-lock-keyword-face)
+           (f '(just contains has has-suffix has-prefix
+                     truthy falsey anything exactly roughly throws)
+              'font-lock-type-face)
+           '("=>\\|=not=>" . font-lock-negation-char-face) ; arrows
+           '("\\<\\.+[a-zA-z]+\\.+\\>" . 'font-lock-type-face))))) ; metaconstants
+
+
 ;; Interactive
 
 (defun midje-next-fact ()
