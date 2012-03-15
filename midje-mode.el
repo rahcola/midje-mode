@@ -56,7 +56,7 @@
 
 (defun midje-to-unfinished ()
   (goto-char (point-min))
-  (search-forward-regexp "(\(.*/\)?unfinished"))
+  (search-forward-regexp "(\\(.*/\\)?unfinished"))
 
 (defun midje-within-unfinished? ()
   (let ((target (point))
